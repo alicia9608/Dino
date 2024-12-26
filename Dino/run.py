@@ -1,6 +1,6 @@
 from types import FrameType
 import pygame
-
+import random
 pygame.init()
 #畫布大小
 screen = pygame.display.set_mode((1280,400)) 
@@ -11,6 +11,9 @@ img_dinorun=[pygame.image.load("DinoRun1.png"),pygame.image.load("DinoRun2.png")
 img_dinoduck=[pygame.image.load("DinoDuck1.png"),pygame.image.load("DinoDuck2.png")]
 img_bird = pygame.image.load("bird1.png")
 img_birdrun=[pygame.image.load("Bird1.png"),pygame.image.load("Bird2.png")]
+img_track = pygame.image.load("track.png")
+
+
 
 
 
@@ -28,18 +31,23 @@ g=1
 cactus_rect=img_cactus.get_rect()
 cactus_rect.x=2000
 cactus_rect.y=330
-speed=10
+initspeed=5
 
 bird_rect=img_bird.get_rect()
 bird_rect.x=1000
 bird_rect.y=250
-speed=5
+initspeed=5
 
+speed=initspeed
 
 #設定分數
 score=0
 highscore=0 #最高紀錄
 font=pygame.font.Font(None,36)
+
+#設定等級
+level=0
+speedlist = [5,10,21,30,38]
 
 clock = pygame.time.Clock()
 running = True
@@ -53,6 +61,7 @@ while running:
     # poll for events
     # pygame.QUIT event means the user clicked X to close your window
     score+=1
+
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -84,9 +93,10 @@ while running:
                     gameover=False
 
     if not gameover:
-        
+
+
         if is_jumping:
-            dino_rect.y-=nowjump
+            dino_rect.y-=nowjump 
             nowjump-=g
             if dino_rect.y>300:
                 dino_rect.y=300
@@ -96,29 +106,43 @@ while running:
         cactus_rect.x-=speed
         bird_rect.x-=speed
         if cactus_rect.x<0:
-            cactus_rect.x=3000
+            cactus_rect.x=random.randrange(1280,3000)
+            
         if bird_rect.x<0:
-            bird_rect.x=2000
+            bird_rect.x=random.randrange(1280,2000)
+          
         
-        if dino_rect.colliderect(cactus_rect):
+        if dino_rect.colliderect(cactus_rect) or dino_rect.colliderect(bird_rect):
             if score>highscore:
                 highscore=score
             
             gameover=True  
-        if dino_rect.colliderect(bird_rect):
-            if score>highscore:
-                highscore=score
-            
-            gameover=True  
+            speed=initspeed
+        
+        if score>3000:
+            speed = speedlist[3]
+            level = 3
+        elif score >2000:
+            speed = speedlist[2]
+            level =2
+        elif score >1000:
+            speed = speedlist[1]
+            level = 1
+
 
         # fill the screen with a color to wipe away anything from last frame
         screen.fill((255,255,255))
+        screen.blit(img_track,(0,370))
 
         score_show=font.render(f"Score:{score}",True,(0,0,0))
         screen.blit(score_show,(10,10))
 
         highscore_show=font.render(f"Hi Score:{highscore}",True,(0,0,0))
         screen.blit(highscore_show,(10,30))
+
+        level_show = font.render(f"Level: {level} Speed: {speed}",True, (0,0,0))
+        screen.blit(level_show,(10,50))
+
 
         if gameover:
             gameover_show=font.render(f"Game Over",True,(0,0,0))
