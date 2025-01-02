@@ -11,12 +11,12 @@ img_dinorun=[pygame.image.load("DinoRun1.png"),pygame.image.load("DinoRun2.png")
 img_dinoduck=[pygame.image.load("DinoDuck1.png"),pygame.image.load("DinoDuck2.png")]
 img_bird = pygame.image.load("bird1.png")
 img_birdrun=[pygame.image.load("Bird1.png"),pygame.image.load("Bird2.png")]
-img_track = pygame.image.load("track.png")
+img_track = pygame.image.load("Track.png")
+img_missile = pygame.image.load("missile.png")
 
-
-
-
-
+img_cactus = pygame.image.load("cactus.png")
+img_dino = pygame.transform.scale(img_dino,(100,100))
+img_missile = pygame.transform.scale(img_missile,(100,50))
 
 #設定角色
 dino_rect=img_dino.get_rect()
@@ -24,6 +24,7 @@ dino_rect.x=50
 dino_rect.y=300
 is_jumping=False
 is_ducking=False
+attack=False
 jump=25
 nowjump=jump
 g=1 
@@ -40,6 +41,11 @@ initspeed=5
 
 speed=initspeed
 
+missile_rect=img_missile.get_rect()
+missile_rect.x=dino_rect.x+50
+missile_rect.y=dino_rect.y+20
+
+
 #設定分數
 score=0
 highscore=0 #最高紀錄
@@ -55,7 +61,9 @@ gameover=False
 
 lastime=0
 frame=0 
-    
+
+
+
 
 while running:
     # poll for events
@@ -67,13 +75,18 @@ while running:
         if event.type == pygame.QUIT:
             running = False
         if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_SPACE:
+            if event.key == pygame.K_SPACE:  #設定按鍵功能
                 is_jumping=True
             if event.key == pygame.K_r:
                 score=0
                 cactus_rect.x=3000
                 bird_rect.x=2000
                 gameover=False
+            
+            if event.key == pygame.K_v:
+                attack=True
+                missile_rect.y=dino_rect.y+20
+                missile_rect.x=dino_rect.x+50
 
             if event.key==pygame.K_DOWN:
                 dino_rect.y=330
@@ -94,12 +107,12 @@ while running:
 
     if not gameover:
 
-
         if is_jumping:
             dino_rect.y-=nowjump 
             nowjump-=g
             if dino_rect.y>300:
                 dino_rect.y=300
+                missile_rect.y=dino_rect.y+20
                 nowjump=jump
                 is_jumping=False
 
@@ -107,7 +120,6 @@ while running:
         bird_rect.x-=speed
         if cactus_rect.x<0:
             cactus_rect.x=random.randrange(1280,3000)
-            
         if bird_rect.x<0:
             bird_rect.x=random.randrange(1280,2000)
           
@@ -118,6 +130,7 @@ while running:
             
             gameover=True  
             speed=initspeed
+        
         
         if score>3000:
             speed = speedlist[3]
@@ -134,8 +147,9 @@ while running:
         screen.fill((255,255,255))
         screen.blit(img_track,(0,370))
 
-        score_show=font.render(f"Score:{score}",True,(0,0,0))
-        screen.blit(score_show,(10,10))
+    
+        score_show=font.render(f"Score:{score}",True,(0,0,0)) #顯示文字和顏色
+        screen.blit(score_show,(10,10))  #擺放位置
 
         highscore_show=font.render(f"Hi Score:{highscore}",True,(0,0,0))
         screen.blit(highscore_show,(10,30))
@@ -143,7 +157,18 @@ while running:
         level_show = font.render(f"Level: {level} Speed: {speed}",True, (0,0,0))
         screen.blit(level_show,(10,50))
 
-
+        if attack:
+            missile_rect.x+=5
+            screen.blit(img_missile,(missile_rect.x,missile_rect.y))
+            if missile_rect.colliderect(bird_rect):
+                bird_rect.x = random.randint(1280, 3000)
+                missile_rect.x=1280
+                attack = False
+            if missile_rect.colliderect(cactus_rect):
+                cactus_rect.x = random.randint(1280, 3000)
+                missile_rect.x=1280
+                attack=False
+       
         if gameover:
             gameover_show=font.render(f"Game Over",True,(0,0,0))
             screen.blit(gameover_show,(550,150))
